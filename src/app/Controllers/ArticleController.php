@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use Doctrine\ORM\EntityManager;
 use Nette\Database\Connection;
 use Nette\Database\Context;
 use Nette\Utils\DateTime;
@@ -22,10 +23,16 @@ class ArticleController
 	/** @var Context */
 	private $context;
 
-	public function __construct(Connection $database, Context $context)
+	/**
+	 * @var EntityManager
+	 */
+	private $em;
+
+	public function __construct(Connection $database, Context $context, EntityManager $entityManager)
 	{
 		$this->database = $database;
 		$this->context = $context;
+		$this->em = $entityManager;
 	}
 
 	public function get(Request $request, Response $response, $args)
