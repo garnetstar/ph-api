@@ -6,15 +6,12 @@ use Slim\App;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$settings = require __DIR__ . '/../app/settings.php';
+$container = require __DIR__ . '/../app/container.php';
 
-$app = new App(['settings' => $settings]);
-
-require __DIR__ . '/../app/services.php';
+$app = new App($container);
 
 require __DIR__ . '/../app/routes.php';
 
 require __DIR__ . '/../app/functions.php';
 
 $app->run();
-
