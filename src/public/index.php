@@ -12,6 +12,4 @@ $app = new App($container);
 
 require __DIR__ . '/../app/routes.php';
 
-require __DIR__ . '/../app/functions.php';
-
 $app->run();
