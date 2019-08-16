@@ -3,24 +3,25 @@
 namespace Controllers;
 
 use Doctrine\ORM\EntityManager;
+use Model\Article\Article;
+use Model\Article\ArticleRepository;
 use Nette\Database\Connection;
 use Nette\Database\Context;
 use Nette\Utils\DateTime;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
-/**
- * Description of ArticleController
- *
- * @author machacej
- */
 class ArticleController
 {
 
-	/** @var Connection */
+	/**
+	 * @var Connection
+	 */
 	private $database;
 
-	/** @var Context */
+	/**
+	 * @var Context
+	 */
 	private $context;
 
 	/**
@@ -28,22 +29,30 @@ class ArticleController
 	 */
 	private $em;
 
+	/**
+	 * @var ArticleRepository
+	 */
+	private $articleRepository;
+
 	public function __construct(Connection $database, Context $context, EntityManager $entityManager)
 	{
 		$this->database = $database;
 		$this->context = $context;
 		$this->em = $entityManager;
+		$this->articleRepository = $this->em->getRepository(Article::class);
 	}
 
-	public function get(Request $request, Response $response, $args)
+	public function get(Request $request, Response $response, $args): Response
 	{
+
 		if (isset($args['id'])) {
 			$data = $this->database->query('SELECT * FROM article WHERE isnull(deleted) AND article_id=?', $args['id'])->fetch();
-			return $response->withJson($data);
-		} else {
-			$data = $this->database->query('SELECT article_id, title FROM article WHERE isnull(deleted)  ORDER BY last_update DESC')->fetchAll();
+
 			return $response->withJson($data);
 		}
+		$allArticles = $this->articleRepository->findAllOrderedByLastUpdate();
+
+		return $response->withJson($allArticles);
 	}
 
 	public function put(Request $request, Response $response, $args)
