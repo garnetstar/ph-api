@@ -40,7 +40,7 @@ $application->add($container[IndexationCommand::class]);
 
 $application->run();
 
-function dump($var)
-{
-	echo '<pre>' . print_r($var, true) . '</pre>';
-}
+//function dump($var)
+//{
+//	echo '<pre>' . print_r($var, true) . '</pre>';
+//}
