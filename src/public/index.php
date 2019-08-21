@@ -2,7 +2,7 @@
 
 use Slim\App;
 
-//phpinfo();
+const APP_ROOT = __DIR__ . '/../app';
 
 require __DIR__ . '/../vendor/autoload.php';
 

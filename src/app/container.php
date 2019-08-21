@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Command\MigrateCommand;
 use Controllers\ArticleController;
 use Controllers\GymController;
 use Controllers\LoginController;
@@ -39,7 +40,7 @@ $container['storage'] = function ($c) {
 
 //database context
 $container['database-context'] = function ($c) {
-	$storage = new Nette\Caching\Storages\FileStorage('../temp');
+	$storage = new Nette\Caching\Storages\FileStorage(APP_ROOT . '/../temp');
 //	$databaseCache = new \Nette\Caching\Cache($storage);
 	$structure = new Structure($c->get('database'), $storage);
 	return new Context($c->database, $structure);
@@ -105,6 +106,10 @@ $container[EntityManager::class] = function (Container $container) {
 		$container['settings']['doctrine']['connection'],
 		$config
 	);
+};
+
+$container[MigrateCommand::class] = function (Container $container) {
+	return new MigrateCommand($container[EntityManager::class], $container['database']);
 };
 
 return $container;

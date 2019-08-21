@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Model\Article;
 
 use Doctrine\ORM\Mapping as ORM;
+use Model\DateTime\DateTime;
+use phpseclib\System\SSH\Agent\Identity;
 
 /**
  * @ORM\Entity
@@ -34,8 +36,8 @@ class Article
 	private $content;
 
 	/**
-	 * @var \DateTime
-	 * @ORM\Column(type="datetime")
+	 * @var \DateTime|null
+	 * @ORM\Column(type="datetime", nullable=true)
 	 */
 	private $updated;
 
@@ -52,13 +54,49 @@ class Article
 		$this->updated = new \DateTime();
 	}
 
+	public function getId(): int
+	{
+		return $this->id;
+	}
+
 	public function getTitle(): string
 	{
 		return $this->title;
+	}
+	
+	public function setTitle(string $title): void
+	{
+		$this->title = $title;
 	}
 
 	public function getContent(): string
 	{
 		return $this->content;
 	}
+
+	public function setContent(string $content): void
+	{
+		$this->content = $content;
+	}
+
+	public function getDeleted(): ?\DateTime
+	{
+		return $this->deleted;
+	}
+
+	public function setDeleted(?\DateTime $deleted): void
+	{
+		$this->deleted = $deleted;
+	}
+
+	public function getUpdated(): ?\DateTime
+	{
+		return $this->updated;
+	}
+
+	public function setUpdated(?\DateTime $updated): void
+	{
+		$this->updated = $updated;
+	}
+
 }
