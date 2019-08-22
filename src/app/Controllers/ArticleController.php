@@ -1,81 +1,133 @@
 <?php
+declare(strict_types=1);
 
 namespace Controllers;
 
+use API\Article\ArticleResponse;
+use API\Article\ArticleResponseCollection;
+use Doctrine\ORM\EntityManager;
+use Model\Article\Article;
+use Model\Article\ArticleRepository;
+use Model\Exception\ArticleNotFoundException;
 use Nette\Database\Connection;
 use Nette\Database\Context;
-use Nette\Utils\DateTime;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
-/**
- * Description of ArticleController
- *
- * @author machacej
- */
 class ArticleController
 {
 
-	/** @var Connection */
+	/**
+	 * @var Connection
+	 */
 	private $database;
 
-	/** @var Context */
+	/**
+	 * @var Context
+	 */
 	private $context;
 
-	public function __construct(Connection $database, Context $context)
+	/**
+	 * @var EntityManager
+	 */
+	private $entityManager;
+
+	/**
+	 * @var ArticleRepository
+	 */
+	private $articleRepository;
+
+	public function __construct(Connection $database, Context $context, EntityManager $entityManager)
 	{
 		$this->database = $database;
 		$this->context = $context;
+		$this->entityManager = $entityManager;
+		$this->articleRepository = $this->entityManager->getRepository(Article::class);
 	}
 
-	public function get(Request $request, Response $response, $args)
+	public function get(Request $request, Response $response, $args): Response
 	{
 		if (isset($args['id'])) {
-			$data = $this->database->query('SELECT * FROM article WHERE isnull(deleted) AND article_id=?', $args['id'])->fetch();
-			return $response->withJson($data);
-		} else {
-			$data = $this->database->query('SELECT article_id, title FROM article WHERE isnull(deleted)  ORDER BY last_update DESC')->fetchAll();
-			return $response->withJson($data);
-		}
-	}
 
-	public function put(Request $request, Response $response, $args)
-	{
-		$data = json_decode($request->getBody()->getContents());
-		$this->database->query('INSERT INTO article', ['title' => $data->title, 'content' => '', 'last_update' => new DateTime]);
-		$articleId = $this->database->getInsertId();
-		return $response->withJson(['state' => 'ok', 'article_id' => $articleId]);
-	}
-
-	public function post(Request $request, Response $response, $args)
-	{
-		$data = json_decode($request->getBody()->getContents());
-		$this->database->query('UPDATE article SET ? WHERE article_id = ?',
-			['title' => $data->title, 'content' => $data->content, 'last_update' => new DateTime()],
-			$args['id']
-		);
-		return $response->withJson(['state' => 'ok']);
-	}
-
-	public function delete(Request $request, Response $response, $args)
-	{
-		$this->database->query('UPDATE article SET deleted=NOW() WHERE article_id=?', $args['id']);
-		return $response->withJson(['state' => 'ok']);
-	}
-
-	public function filter(Request $request, Response $response, $args)
-	{
-		if ($args['field'] === 'title') {
-			$articles = $this->context->table('article');
-			$articles->where('title LIKE ?', '%' . $args['word'] . "%");
-			$articles->where('deleted IS NULL');
-
-			$data = [];
-			foreach ($articles->fetchAll() as $one) {
-				$data[] = ['article_id' => $one->article_id, 'title' => $one->title];
+			try {
+				$article = $this->articleRepository->getByIdNotDeleted((int)$args['id']);
+			} catch (ArticleNotFoundException $e) {
+				return $response->withStatus(404)->write('Not found.');
 			}
 
-			return $response->withJson($data);
+			return $response->withJson((new ArticleResponse($article))->toArray());
 		}
+
+		$allArticles = $this->articleRepository->findAllOrderedByLastUpdate();
+
+		$articleResponse = new ArticleResponseCollection($allArticles);
+
+		return $response->withJson($articleResponse->toArray());
+	}
+
+	public function put(Request $request, Response $response, $args): Response
+	{
+		try {
+			$data = json_decode($request->getBody()->getContents());
+
+			$article = new Article($data->title, '');
+
+			$this->entityManager->persist($article);
+			$this->entityManager->flush();
+
+			return $response->withJson(['state' => 'ok', 'article_id' => $article->getId()]);
+		} catch (\Exception $e) {
+			return $response->withStatus(500)->write('Internal Server Error.');
+		}
+	}
+
+	public function post(Request $request, Response $response, $args): Response
+	{
+		try {
+			$data = json_decode($request->getBody()->getContents());
+
+			try {
+				$article = $this->articleRepository->getByIdNotDeleted((int)$args['id']);
+			} catch (ArticleNotFoundException $e) {
+				return $response->withStatus(404)->write('Not found.');
+			}
+
+			$article->setTitle($data->title);
+			$article->setContent($data->content);
+			$article->setUpdated(new \DateTime());
+
+			$this->entityManager->flush();
+
+			return $response->withJson(['state' => 'ok']);
+
+		} catch (\Exception $e) {
+			return $response->withStatus(500)->write('Internal Server Error.');
+		}
+	}
+
+	public function delete(Request $request, Response $response, $args): Response
+	{
+		try {
+			$this->articleRepository->softDelete((int)$args['id']);
+		} catch (ArticleNotFoundException $e) {
+			return $response->withStatus(404)->write('Not found.');
+		} catch (\Exception $e) {
+			return $response->withStatus(500)->write('Internal Server Error.');
+		}
+
+		return $response->withJson(['state' => 'ok']);
+	}
+
+	public function filter(Request $request, Response $response, $args): Response
+	{
+		if ($args['field'] === 'title') {
+
+			$articles = $this->articleRepository->findByTitleLike($args['word']);
+			$articleResponseCollection = new ArticleResponseCollection($articles);
+
+			return $response->withJson($articleResponseCollection->toArray());
+		}
+
+		return $response->withStatus(400)->write('Invalid Argument Exception.');
 	}
 }

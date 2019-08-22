@@ -2,7 +2,10 @@
   "require": {
     "slim/slim": "^3.0",
     "nette/database": "v2.4.4",
-    "google/apiclient": "^2.0"
+    "google/apiclient": "^2.0",
+    "doctrine/orm": "^2",
+    "symfony/console": "^4.3",
+    "ext-json": "*"
   },
   "autoload": {
     "psr-4": {
