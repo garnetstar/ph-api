@@ -1,24 +1,26 @@
-# This is a sample build configuration for PHP.
-# Check our guides at https://confluence.atlassian.com/x/e8YWN for more examples.
-# Only use spaces to indent your .yml configuration.
-# -----
-# You can specify a custom docker image from Docker Hub as your build environment.
 image: garnetstar/pg_build:latest
 
 pipelines:
   default:
     - step:
         caches:
-          - composer
+          - vendor
         name: Instal vendor dependencies
         script:
           - cd src
           - composer install
     - step:
-        name: Build image
+        services:
+            - docker
+        caches:
+          - vendor
+        name: Build and push docker image
         script:
-          - ls -l
-
+          - export IMAGE_NAME=garnetstar/pg-api:$BITBUCKET_COMMIT
+          - docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+          - docker build --no-cache -f ./Docker/deploy/Dockerfile -t $IMAGE_NAME .
+          - docker images
+          - docker push $IMAGE_NAME
 definitions:
   caches:
-    composer: src/vendor
+    vendor: src/vendor
