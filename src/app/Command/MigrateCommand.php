@@ -5,6 +5,7 @@ namespace Command;
 
 use Doctrine\ORM\EntityManager;
 use Model\Article\Article;
+use Model\User\User;
 use Nette\Database\Connection;
 use Nette\Utils\DateTime;
 use Symfony\Component\Console\Command\Command;
@@ -46,6 +47,7 @@ class MigrateCommand extends Command
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
 		$this->migrateArticle();
+		$this->migrateUsers();
 	}
 
 	private function migrateArticle(): void
@@ -63,6 +65,22 @@ class MigrateCommand extends Command
 			$article->setDeleted($deleted);
 			$article->setUpdated($updated);
 			$this->entityManager->persist($article);
+		}
+
+		$this->entityManager->flush();
+	}
+
+	private function migrateUsers(): void
+	{
+		$data = $this->netteDatabase->query('SELECT * FROM user')->fetchAll();
+
+		foreach ($data as $one)
+		{
+			$login = (string) $one['login'];
+			$token = (string) $one['token'];
+
+			$user = new User($login, $token);
+			$this->entityManager->persist($user);
 		}
 
 		$this->entityManager->flush();

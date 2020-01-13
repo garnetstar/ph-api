@@ -18,16 +18,6 @@ class ArticleController
 {
 
 	/**
-	 * @var Connection
-	 */
-	private $database;
-
-	/**
-	 * @var Context
-	 */
-	private $context;
-
-	/**
 	 * @var EntityManager
 	 */
 	private $entityManager;
@@ -37,10 +27,8 @@ class ArticleController
 	 */
 	private $articleRepository;
 
-	public function __construct(Connection $database, Context $context, EntityManager $entityManager)
+	public function __construct(EntityManager $entityManager)
 	{
-		$this->database = $database;
-		$this->context = $context;
 		$this->entityManager = $entityManager;
 		$this->articleRepository = $this->entityManager->getRepository(Article::class);
 	}
