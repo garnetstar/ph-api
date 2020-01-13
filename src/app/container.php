@@ -46,22 +46,10 @@ $container['database-context'] = function ($c) {
 	return new Context($c->database, $structure);
 };
 
-//$container[HomeController::class] = function ($c) {
-//	return new HomeController($c->get('database'), $c['environment']);
-//};
-
-$container[TagController::class] = function (Container $container) {
-	return new TagController($container->get('database'));
-};
-
 $container[ArticleController::class] = function (Container $container) {
 	return new ArticleController(
 		$container->get(EntityManager::class)
 	);
-};
-
-$container[GymController::class] = function ($c) {
-	return new GymController($c->get('database'));
 };
 
 $container[LoginController::class] = function (Container $container) {
