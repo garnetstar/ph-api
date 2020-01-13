@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace Controllers;
 
-use Model\TokenRepository;
-use Model\UserRepository;
+use Doctrine\ORM\EntityManager;
+use Model\Exception\UserNotFoundException;
+use Model\User\User;
+use Model\User\UserRepository;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -21,10 +23,10 @@ class LoginController
 	 */
 	private $userRepository;
 
-	public function __construct(string $clientId, UserRepository $userRepository)
+	public function __construct(string $googleClientId, EntityManager $entityManager)
 	{
-		$this->clientId = $clientId;
-		$this->userRepository = $userRepository;
+		$this->clientId = $googleClientId;
+		$this->userRepository = $entityManager->getRepository(User::class);
 	}
 
 	public function post(Request $request, Response $response, array $args)
@@ -38,7 +40,7 @@ class LoginController
 			if ($user = $this->getUser($payload)) {
 				$response = $response->withJson(
 					[
-						'token' => $user['token'],
+						'token' => $user->getToken(),
 					]
 				);
 			} else {
@@ -52,12 +54,16 @@ class LoginController
 		return $response;
 	}
 
-	private function getUser($payload): ?array
+	private function getUser($payload): User
 	{
 		if ($payload === false) {
 			return null;
 		}
 
-		return $this->userRepository->getUserByLogin($payload['email']);
+		try {
+			return $this->userRepository->getByLogin($payload['email']);
+		} catch (UserNotFoundException $e) {
+			return null;
+		}
 	}
 }
