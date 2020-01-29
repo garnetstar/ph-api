@@ -32,4 +32,9 @@ class ArticleResponse
 			'updated' => $updated ? $updated->format(DateTime::DATE_TIME_FORMAT) : null,
 		];
 	}
+
+	public function toJson(): string
+	{
+		return \GuzzleHttp\json_encode($this->toArray());
+	}
 }

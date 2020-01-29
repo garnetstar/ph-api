@@ -7,6 +7,7 @@ RUN apt-get update && \
     mc
 
 RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN docker-php-ext-install pdo_mysql
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
   php composer-setup.php --install-dir=/usr/bin --filename=composer && \

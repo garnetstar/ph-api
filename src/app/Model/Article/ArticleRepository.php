@@ -10,16 +10,26 @@ class ArticleRepository extends EntityRepository
 {
 
 	/**
-	 * @param int $id
+	 * @param int $articleId
 	 * @return Article
 	 * @throws ArticleNotFoundException
+	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
-	public function getByIdNotDeleted(int $id): Article
+	public function getByIdNotDeleted(int $articleId): Article
 	{
+		$qb = $this->getEntityManager()->createQueryBuilder();
+
+		$qb->select('a')
+			->from(Article::class, 'a')
+			->where('a.deleted IS NULL')
+			->andWhere('a = :articleId')
+			->setParameter('articleId', $articleId);
+
 		/** @var Article $article */
-		$article = $this->find($id);
+		$article = $qb->getQuery()->getOneOrNullResult();
+
 		if ($article === null) {
-			throw ArticleNotFoundException::byIdNotDeleted($id);
+			throw ArticleNotFoundException::byIdNotDeleted($articleId);
 		}
 
 		return $article;
