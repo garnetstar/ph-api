@@ -9,7 +9,7 @@ class ArticleResponseCollection
 	/**
 	 * @var ArticleResponse[]
 	 */
-	private $articles;
+	private $articles = [];
 
 	public function __construct(array $articles)
 	{
@@ -31,5 +31,10 @@ class ArticleResponseCollection
 		}
 
 		return $articles;
+	}
+
+	public function toJson(): string
+	{
+		return \GuzzleHttp\json_encode($this->toArray());
 	}
 }

@@ -4,13 +4,14 @@ declare(strict_types=1);
 namespace Controllers;
 
 use Doctrine\ORM\EntityManager;
+use Google_Client;
 use Model\Exception\UserNotFoundException;
 use Model\User\User;
 use Model\User\UserRepository;
-use Slim\Http\Request;
-use Slim\Http\Response;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
 
-class LoginController
+class LoginController extends BaseController
 {
 
 	/**
@@ -31,30 +32,33 @@ class LoginController
 
 	public function post(Request $request, Response $response, array $args)
 	{
-		$data = json_decode($request->getBody()->getContents());
-		if (isset($data->id_token)) {
+		$data = json_decode($request->getBody()->getContents(), true);
+		if (isset($data['id_token'])) {
 
-			$client = new \Google_Client(['client_id' => $this->clientId]);
-			$payload = $client->verifyIdToken($data->id_token);
+			$client = new Google_Client(['client_id' => $this->clientId]);
+			$payload = $client->verifyIdToken($data['id_token']);
 
 			if ($user = $this->getUser($payload)) {
-				$response = $response->withJson(
-					[
-						'token' => $user->getToken(),
-					]
-				);
-			} else {
-				$response = $response->withStatus(401)->write('Invalid credentials');
+				$body = [
+					'token' => $user->getToken(),
+				];
+
+				$response->getBody()->write(json_encode($body));
+
+				return $this->returnJson($response);
 			}
-		} else {
-			$response = $response->withStatus(401)
-				->write('Missing parameter');
+
+			$response->getBody()->write('Invalid credentials');
+
+			return $response->withStatus(401);
 		}
 
-		return $response;
+		$response->getBody()->write('Missing parameter');
+
+		return $response->withStatus(422);
 	}
 
-	private function getUser($payload): User
+	private function getUser($payload): ?User
 	{
 		if ($payload === false) {
 			return null;

@@ -5,16 +5,18 @@ namespace Controllers;
 
 use API\Article\ArticleResponse;
 use API\Article\ArticleResponseCollection;
+use DateTime;
 use Doctrine\ORM\EntityManager;
+use Exception;
 use Model\Article\Article;
 use Model\Article\ArticleRepository;
+use Model\Article\ArticleRequestBodyValidator;
 use Model\Exception\ArticleNotFoundException;
-use Nette\Database\Connection;
-use Nette\Database\Context;
-use Slim\Http\Request;
-use Slim\Http\Response;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+use GuzzleHttp;
 
-class ArticleController
+class ArticleController extends BaseController
 {
 
 	/**
@@ -35,75 +37,115 @@ class ArticleController
 
 	public function get(Request $request, Response $response, $args): Response
 	{
-		if (isset($args['id'])) {
+		try {
+			if (isset($args['id'])) {
 
-			try {
-				$article = $this->articleRepository->getByIdNotDeleted((int)$args['id']);
-			} catch (ArticleNotFoundException $e) {
-				return $response->withStatus(404)->write('Not found.');
+				try {
+					$article = $this->articleRepository->getByIdNotDeleted((int) $args['id']);
+				} catch (ArticleNotFoundException $e) {
+					$response->getBody()->write('Not found');
+
+					return $response->withStatus(404);
+				}
+
+				$response->getBody()->write(
+					(new ArticleResponse($article))->toJson()
+				);
+
+				return $response->withHeader('Content-Type', 'application/json');
 			}
 
-			return $response->withJson((new ArticleResponse($article))->toArray());
+			$allArticles = $this->articleRepository->findAllOrderedByLastUpdate();
+
+			$articleResponse = new ArticleResponseCollection($allArticles);
+			$response->getBody()->write($articleResponse->toJson());
+
+			return $this->returnJson($response);
+		} catch (\Exception $e) {
+			$response->getBody()->write('Internal Server Error');
+
+			return $response->withStatus(500);
 		}
-
-		$allArticles = $this->articleRepository->findAllOrderedByLastUpdate();
-
-		$articleResponse = new ArticleResponseCollection($allArticles);
-
-		return $response->withJson($articleResponse->toArray());
 	}
 
 	public function put(Request $request, Response $response, $args): Response
 	{
 		try {
-			$data = json_decode($request->getBody()->getContents());
+			$data = json_decode($request->getBody()->getContents(), true);
 
-			$article = new Article($data->title, '');
+			if (ArticleRequestBodyValidator::isValid($data)) {
+				$article = new Article($data['title'], $data['content']);
+				$this->entityManager->persist($article);
+				$this->entityManager->flush();
+			} else {
+				$response->getBody()->write('Invalid request body');
 
-			$this->entityManager->persist($article);
-			$this->entityManager->flush();
+				return $response->withStatus(422);
+			}
 
-			return $response->withJson(['state' => 'ok', 'article_id' => $article->getId()]);
-		} catch (\Exception $e) {
-			return $response->withStatus(500)->write('Internal Server Error.');
+			$body = ['state' => 'ok', 'article_id' => $article->getId()];
+			$response->getBody()->write(json_encode($body));
+
+			return $this->returnJson($response);
+		} catch (Exception $e) {
+			$response->getBody()->write('Internal Server Error');
+
+			return $response->withStatus(500);
 		}
 	}
 
 	public function post(Request $request, Response $response, $args): Response
 	{
 		try {
-			$data = json_decode($request->getBody()->getContents());
+			$data = json_decode($request->getBody()->getContents(), true);
 
 			try {
-				$article = $this->articleRepository->getByIdNotDeleted((int)$args['id']);
+				$article = $this->articleRepository->getByIdNotDeleted((int) $args['id']);
 			} catch (ArticleNotFoundException $e) {
-				return $response->withStatus(404)->write('Not found.');
+				$response->getBody()->write('Not found.');
+
+				return $response->withStatus(404);
 			}
 
-			$article->setTitle($data->title);
-			$article->setContent($data->content);
-			$article->setUpdated(new \DateTime());
+			if (ArticleRequestBodyValidator::isValid($data)) {
+				$article->setTitle($data['title']);
+				$article->setContent($data['content']);
+				$article->setUpdated(new DateTime());
+				$this->entityManager->flush();
 
-			$this->entityManager->flush();
+				$body = ['state' => 'ok'];
+				$response->getBody()->write(json_encode($body));
 
-			return $response->withJson(['state' => 'ok']);
+				return $this->returnJson($response);
+			}
 
-		} catch (\Exception $e) {
-			return $response->withStatus(500)->write('Internal Server Error.');
+			$response->getBody()->write('Invalid request body');
+
+			return $response->withStatus(422);
+		} catch (Exception $e) {
+			$response->getBody()->write('Internal Server Error.');
+
+			return $response->withStatus(500);
 		}
 	}
 
 	public function delete(Request $request, Response $response, $args): Response
 	{
 		try {
-			$this->articleRepository->softDelete((int)$args['id']);
-		} catch (ArticleNotFoundException $e) {
-			return $response->withStatus(404)->write('Not found.');
-		} catch (\Exception $e) {
-			return $response->withStatus(500)->write('Internal Server Error.');
-		}
+			$this->articleRepository->softDelete((int) $args['id']);
+			$body = ['state' => 'ok'];
+			$response->getBody()->write(json_encode($body));
 
-		return $response->withJson(['state' => 'ok']);
+			return $this->returnJson($response);
+		} catch (ArticleNotFoundException $e) {
+			$response->getBody()->write('Not found.');
+
+			return $response->withStatus(404);
+		} catch (Exception $e) {
+			$response->getBody()->write('Internal Server Error.');
+
+			return $response->withStatus(500);
+		}
 	}
 
 	public function filter(Request $request, Response $response, $args): Response
@@ -113,9 +155,13 @@ class ArticleController
 			$articles = $this->articleRepository->findByTitleLike($args['word']);
 			$articleResponseCollection = new ArticleResponseCollection($articles);
 
-			return $response->withJson($articleResponseCollection->toArray());
+			$response->getBody()->write($articleResponseCollection->toJson());
+
+			return $this->returnJson($response);
 		}
 
-		return $response->withStatus(400)->write('Invalid Argument Exception.');
+		$response->getBody()->write('Invalid Argument Exception.');
+
+		return $response->withStatus(422);
 	}
 }
