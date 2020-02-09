@@ -1,7 +1,13 @@
-image: garnetstar/pg_build:latest
+image: garnetstar/pg-api-build:php7.2
 
 pipelines:
   default:
+    - step:
+        name: Run tests
+        script:
+          - ls -la
+  branches:
+    master:
     - step:
         caches:
           - vendor
