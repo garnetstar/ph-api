@@ -1,4 +1,4 @@
-FROM limogin/php-7.1-apache
+FROM php:7.2.26-apache
 
 RUN mkdir /api
 
@@ -9,6 +9,9 @@ COPY src .
 RUN mkdir -p ./temp/cache/doctrine
 RUN chgrp www-data -R ./temp
 RUN chmod g+rwx -R ./temp
+
+RUN mkdir ./log
+RUN chmod g+rwx ./log
 
 # make apache runnable
 COPY Docker/default.conf /etc/apache2/sites-available/pg-api.conf
