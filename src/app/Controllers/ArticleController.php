@@ -12,9 +12,9 @@ use Model\Article\Article;
 use Model\Article\ArticleRepository;
 use Model\Article\ArticleRequestBodyValidator;
 use Model\Exception\ArticleNotFoundException;
+use Psr\Log\LoggerInterface;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
-use GuzzleHttp;
 
 class ArticleController extends BaseController
 {
@@ -29,10 +29,16 @@ class ArticleController extends BaseController
 	 */
 	private $articleRepository;
 
-	public function __construct(EntityManager $entityManager)
+	/**
+	 * @var LoggerInterface
+	 */
+	private $logger;
+
+	public function __construct(EntityManager $entityManager, LoggerInterface $logger)
 	{
 		$this->entityManager = $entityManager;
 		$this->articleRepository = $this->entityManager->getRepository(Article::class);
+		$this->logger = $logger;
 	}
 
 	public function get(Request $request, Response $response, $args): Response
@@ -63,6 +69,7 @@ class ArticleController extends BaseController
 			return $this->returnJson($response);
 		} catch (\Exception $e) {
 			$response->getBody()->write('Internal Server Error');
+			$this->logger->error($e->getMessage(), ['error' => $e]);
 
 			return $response->withStatus(500);
 		}
@@ -89,6 +96,7 @@ class ArticleController extends BaseController
 			return $this->returnJson($response);
 		} catch (Exception $e) {
 			$response->getBody()->write('Internal Server Error');
+			$this->logger->error($e->getMessage(), ['error' => $e]);
 
 			return $response->withStatus(500);
 		}
@@ -124,6 +132,7 @@ class ArticleController extends BaseController
 			return $response->withStatus(422);
 		} catch (Exception $e) {
 			$response->getBody()->write('Internal Server Error.');
+			$this->logger->error($e->getMessage(), ['error' => $e]);
 
 			return $response->withStatus(500);
 		}

@@ -13,6 +13,8 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Tools\Setup;
 use Middleware\Auth;
 use Model\UserRepository;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Nette\Database\Connection;
 use Psr\Container\ContainerInterface;
 
@@ -33,7 +35,8 @@ return function (ContainerBuilder $containerBuilder) {
 
 		ArticleController::class => function (ContainerInterface $container) {
 			return new ArticleController(
-				$container->get(EntityManager::class)
+				$container->get(EntityManager::class),
+				$container->get(Logger::class)
 			);
 		},
 
@@ -87,7 +90,14 @@ return function (ContainerBuilder $containerBuilder) {
 				$config
 			);
 		},
+		
+		Logger::class => function (ContainerInterface $container) {
+			$streamHandler = new StreamHandler(APP_ROOT . '/../log/app.log', Logger::DEBUG);
+			$logger = new Logger('pg-api');
+			$logger->pushHandler($streamHandler);
 
+			return $logger;
+		},
 	]);
 };
 
