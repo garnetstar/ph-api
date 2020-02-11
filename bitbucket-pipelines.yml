@@ -1,13 +1,22 @@
 image: garnetstar/pg-api-build:php7.2
 
-pipelines:
-  default:
-    - step:
+definitions:
+  caches:
+    vendor: src/vendor
+
+  steps:
+    - step: &Test-step
         name: Run tests
         script:
           - ls -la
+          -
+pipelines:
+  default:
+    - step: *Test-step
+
   branches:
     master:
+    - step: *Test-step
     - step:
         caches:
           - vendor
@@ -27,6 +36,4 @@ pipelines:
           - docker build --no-cache -f ./Docker/deploy/Dockerfile -t $IMAGE_NAME .
           - docker images
           - docker push $IMAGE_NAME
-definitions:
-  caches:
-    vendor: src/vendor
+
