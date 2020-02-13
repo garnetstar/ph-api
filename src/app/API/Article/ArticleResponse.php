@@ -9,32 +9,32 @@ use Model\DateTime\DateTime;
 class ArticleResponse
 {
 
-	/**
-	 * @var Article
-	 */
-	private $article;
+    /**
+     * @var Article
+     */
+    private $article;
 
-	public function __construct(Article $article)
-	{
-		$this->article = $article;
-	}
+    public function __construct(Article $article)
+    {
+        $this->article = $article;
+    }
 
-	public function toArray(): array
-	{
-		$deleted = $this->article->getDeleted();
-		$updated = $this->article->getUpdated();
+    public function toArray(): array
+    {
+        $deleted = $this->article->getDeleted();
+        $updated = $this->article->getUpdated();
 
-		return [
-			'article_id' => $this->article->getId(),
-			'title' => $this->article->getTitle(),
-			'content' => $this->article->getContent(),
-			'deleted' => $deleted ? $deleted->format(DateTime::DATE_TIME_FORMAT) : null,
-			'updated' => $updated ? $updated->format(DateTime::DATE_TIME_FORMAT) : null,
-		];
-	}
+        return [
+            'article_id' => $this->article->getId(),
+            'title' => $this->article->getTitle(),
+            'content' => $this->article->getContent(),
+            'deleted' => $deleted ? $deleted->format(DateTime::DATE_TIME_FORMAT) : null,
+            'updated' => $updated ? $updated->format(DateTime::DATE_TIME_FORMAT) : null,
+        ];
+    }
 
-	public function toJson(): string
-	{
-		return \GuzzleHttp\json_encode($this->toArray());
-	}
+    public function toJson(): string
+    {
+        return \GuzzleHttp\json_encode($this->toArray());
+    }
 }

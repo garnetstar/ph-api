@@ -8,8 +8,8 @@ use Slim\Psr7\Response;
 class BaseController
 {
 
-	protected function returnJson(Response $response): Response
-	{
-		return $response->withHeader('Content-Type', 'application/json');
-	}
+    protected function returnJson(Response $response): Response
+    {
+        return $response->withHeader('Content-Type', 'application/json');
+    }
 }

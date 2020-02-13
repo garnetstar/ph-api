@@ -6,35 +6,35 @@ namespace API\Article;
 class ArticleResponseCollection
 {
 
-	/**
-	 * @var ArticleResponse[]
-	 */
-	private $articles = [];
+    /**
+     * @var ArticleResponse[]
+     */
+    private $articles = [];
 
-	public function __construct(array $articles)
-	{
-		foreach ($articles as $article) {
-			$this->addArticle(new ArticleResponse($article));
-		}
-	}
+    public function __construct(array $articles)
+    {
+        foreach ($articles as $article) {
+            $this->addArticle(new ArticleResponse($article));
+        }
+    }
 
-	private function addArticle(ArticleResponse $article): void
-	{
-		$this->articles[] = $article;
-	}
+    private function addArticle(ArticleResponse $article): void
+    {
+        $this->articles[] = $article;
+    }
 
-	public function toArray(): array
-	{
-		$articles = [];
-		foreach ($this->articles as $article) {
-			$articles[] = $article->toArray();
-		}
+    public function toArray(): array
+    {
+        $articles = [];
+        foreach ($this->articles as $article) {
+            $articles[] = $article->toArray();
+        }
 
-		return $articles;
-	}
+        return $articles;
+    }
 
-	public function toJson(): string
-	{
-		return \GuzzleHttp\json_encode($this->toArray());
-	}
+    public function toJson(): string
+    {
+        return \GuzzleHttp\json_encode($this->toArray());
+    }
 }
