@@ -11,6 +11,7 @@ definitions:
           - cd src
           - composer install
           - php vendor/bin/phpunit ./tests/ --bootstrap ./tests/bootstrap.php
+          - php vendor/bin/parallel-lint ./app/
 
 pipelines:
   default:
