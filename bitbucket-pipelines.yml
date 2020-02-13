@@ -8,8 +8,10 @@ definitions:
     - step: &Test-step
         name: Run tests
         script:
-          - ls -la
-          -
+          - cd src
+          - composer install
+          - php vendor/bin/phpunit ./tests/ --bootstrap ./tests/bootstrap.php
+
 pipelines:
   default:
     - step: *Test-step
@@ -23,7 +25,7 @@ pipelines:
         name: Instal vendor dependencies
         script:
           - cd src
-          - composer install
+          - composer install -o --prefer-dist --no-dev
     - step:
         services:
             - docker
