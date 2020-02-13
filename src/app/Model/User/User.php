@@ -14,40 +14,39 @@ use Model\DateTime\DateTime;
 class User
 {
 
-	/**
-	 * @var int
-	 * @ORM\Id
-	 * @ORM\Column(type="integer")
-	 * @ORM\GeneratedValue
-	 */
-	private $id;
+    /**
+     * @var int
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue
+     */
+    private $id;
 
-	/**
-	 * @var string
-	 * @ORM\Column(type="string", nullable=false)
-	 */
-	private $login;
+    /**
+     * @var string
+     * @ORM\Column(type="string", nullable=false)
+     */
+    private $login;
 
-	/**
-	 * @var string
-	 * @ORM\Column(type="string")
-	 */
-	private $token;
+    /**
+     * @var string
+     * @ORM\Column(type="string")
+     */
+    private $token;
 
-	public function __construct(string $login, string $token)
-	{
-		$this->login = $login;
-		$this->token = $token;
-	}
+    public function __construct(string $login, string $token)
+    {
+        $this->login = $login;
+        $this->token = $token;
+    }
 
-	public function getLogin(): string
-	{
-		return $this->login;
-	}
+    public function getLogin(): string
+    {
+        return $this->login;
+    }
 
-	public function getToken(): string
-	{
-		return $this->token;
-	}
+    public function getToken(): string
+    {
+        return $this->token;
+    }
 }
-
