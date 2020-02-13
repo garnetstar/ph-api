@@ -1,4 +1,5 @@
 /src/vendor
 .idea/*
 /src/temp
+src/.phpunit.result.cache
 /src/log
