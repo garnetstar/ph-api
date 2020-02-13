@@ -38,4 +38,6 @@ pipelines:
           - docker build --no-cache -f ./Docker/deploy/Dockerfile -t $IMAGE_NAME .
           - docker images
           - docker push $IMAGE_NAME
-
+          - echo "tag=\"$BITBUCKET_COMMIT\"" > variables
+        artifacts:
+          - variables
