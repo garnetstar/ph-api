@@ -19,7 +19,7 @@ pipelines:
     - step: *Test-step
 
   branches:
-    use-template-in-building-pg-api:
+    master:
     - step: *Test-step
     - step:
         caches:
