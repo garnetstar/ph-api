@@ -37,7 +37,7 @@ pipelines:
         script:
           - export IMAGE_NAME=garnetstar/pg-api:$BITBUCKET_COMMIT
           - docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
-          - docker build --no-cache -f ./Docker/deploy/Dockerfile -t $IMAGE_NAME .
+          - docker build --no-cache -f ./Docker/Dockerfile -t $IMAGE_NAME .
           - docker images
           - docker push $IMAGE_NAME
           - echo "tag=\"$BITBUCKET_COMMIT\"" > variables

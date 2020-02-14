@@ -6,8 +6,8 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-export IMAGE_NAME=pg-api-build:php7.2
-docker build -f ../../Docker/Dockerfile -t garnetstar/$IMAGE_NAME .
+export IMAGE_NAME=pg-api-template:php7.2
+docker build -f ../../Docker/Dockerfile-template -t garnetstar/$IMAGE_NAME .
 docker login -u garnetstar docker.io
 docker push garnetstar/$IMAGE_NAME
 
