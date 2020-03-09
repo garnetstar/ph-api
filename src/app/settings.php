@@ -7,7 +7,7 @@ return function (ContainerBuilder $containerBuilder) {
 
     $containerBuilder->addDefinitions([
         'settings' => [
-            'displayErrorDetails' => true,
+            'displayErrorDetails' => false,
 
             'database' => [
                 'dns' => 'mysql:host=db;dbname=' . getenv('DB_NAME'),
