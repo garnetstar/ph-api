@@ -11,7 +11,7 @@ RUN chgrp www-data -R ./temp
 RUN chmod g+rwx -R ./temp
 
 RUN mkdir ./log
-RUN chmod g+rwx ./log
+RUN chmod 777 ./log
 
 # make apache runnable
 COPY Docker/default.conf /etc/apache2/sites-available/pg-api.conf
