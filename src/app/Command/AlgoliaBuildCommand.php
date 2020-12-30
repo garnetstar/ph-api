@@ -15,56 +15,56 @@ class AlgoliaBuildCommand extends Command
 {
 
 
-	/**
-	 * @var EntityManager
-	 */
-	private $entityManager;
+    /**
+     * @var EntityManager
+     */
+    private $entityManager;
 
-	/**
-	 * @param EntityManager $entityManager
-	 * @param string|null $name
-	 */
-	public function __construct(EntityManager $entityManager, string $name = null)
-	{
-		$this->entityManager = $entityManager;
+    /**
+     * @param EntityManager $entityManager
+     * @param string|null $name
+     */
+    public function __construct(EntityManager $entityManager, string $name = null)
+    {
+        $this->entityManager = $entityManager;
 
-		parent::__construct($name);
-	}
+        parent::__construct($name);
+    }
 
-	protected function configure()
-	{
-		$this->setName('app:algoliaBuild')
-			->setDescription('Build index in Algolia');
-	}
+    protected function configure()
+    {
+        $this->setName('app:algoliaBuild')
+            ->setDescription('Build index in Algolia');
+    }
 
-	/**
-	 * @param InputInterface $input
-	 * @param OutputInterface $output
-	 * @return int|void
-	 * @throws \Algolia\AlgoliaSearch\Exceptions\MissingObjectId
-	 */
-	protected function execute(InputInterface $input, OutputInterface $output)
-	{
-		$client = SearchClient::create(
-			'SV32PVGG9Q',
-			'8046172157d880e5236ef465b92ddd5f'
-		);
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|void
+     * @throws \Algolia\AlgoliaSearch\Exceptions\MissingObjectId
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $client = SearchClient::create(
+            'SV32PVGG9Q',
+            '8046172157d880e5236ef465b92ddd5f'
+        );
 
-		/** @var ArticleRepository $articleRepository */
-		$articleRepository = $this->entityManager->getRepository(Article::class);
+        /** @var ArticleRepository $articleRepository */
+        $articleRepository = $this->entityManager->getRepository(Article::class);
 
-		$articles = $articleRepository->findAll();
-		$articlesBundle = [];
-		$index = $client->initIndex('articles');
-		/** @var Article $article */
-		foreach ($articles as $article) {
-			$articlesBundle[] = [
-				'objectID' => $article->getId(),
-				'title' => $article->getTitle(),
-				'content' => $article->getContent(),
-			];
-		}
+        $articles = $articleRepository->findAll();
+        $articlesBundle = [];
+        $index = $client->initIndex('articles');
+        /** @var Article $article */
+        foreach ($articles as $article) {
+            $articlesBundle[] = [
+                'objectID' => $article->getId(),
+                'title' => $article->getTitle(),
+                'content' => $article->getContent(),
+            ];
+        }
 
-		$index->saveObjects($articlesBundle);
-	}
+        $index->saveObjects($articlesBundle);
+    }
 }
