@@ -1,5 +1,9 @@
 FROM garnetstar/pg-api-template:php7.2
 
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git
+
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
