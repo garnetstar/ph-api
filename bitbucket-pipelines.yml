@@ -22,14 +22,15 @@ pipelines:
     master:
     - step: *Test-step
     - step:
-        caches:
-          - vendor
-        name: Instal vendor dependencies
+#        caches:
+#          - vendor
+        name: Install vendor dependencies
         script:
           - cd src
           - composer install -o --prefer-dist --no-dev
+          - ls -la vendor
         artifacts:
-          - vendor
+          - src/vendor
     - step:
         services:
             - docker
