@@ -8,7 +8,8 @@
     "symfony/console": "^4.3",
     "ext-json": "*",
     "slim/psr7": "^1.0",
-    "monolog/monolog": "^2.0"
+    "monolog/monolog": "^2.0",
+    "algolia/algoliasearch-client-php": "^2.7"
   },
   "autoload": {
     "psr-4": {
