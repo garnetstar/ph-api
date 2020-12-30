@@ -31,8 +31,6 @@ pipelines:
     - step:
         services:
             - docker
-        caches:
-          - vendor
         name: Build and push docker image
         script:
           - export IMAGE_NAME=garnetstar/pg-api:$BITBUCKET_COMMIT
