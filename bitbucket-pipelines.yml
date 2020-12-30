@@ -28,6 +28,8 @@ pipelines:
         script:
           - cd src
           - composer install -o --prefer-dist --no-dev
+        artifacts:
+          - vendor
     - step:
         services:
             - docker
