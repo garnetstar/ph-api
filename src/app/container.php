@@ -68,6 +68,10 @@ return function (ContainerBuilder $containerBuilder) {
                 return new MigrateCommand($container->get(EntityManager::class), $container->get('database'));
             },
 
+			\Command\AlgoliaBuildCommand::class => function (Container $container) {
+        		return new \Command\AlgoliaBuildCommand($container->get(EntityManager::class));
+			},
+
             EntityManager::class => function (Container $container) {
                 $settings = $container->get('settings');
 
