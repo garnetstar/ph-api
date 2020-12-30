@@ -29,7 +29,7 @@ pipelines:
           - cd src
           - composer install -o --prefer-dist --no-dev
         artifacts:
-          - vendor
+          - src/vendor
     - step:
         services:
             - docker
