@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 
+use Command\AlgoliaBuildCommand;
 use Command\MigrateCommand;
 use DI\ContainerBuilder;
 use Symfony\Component\Console\Application;
@@ -20,6 +21,6 @@ $container = $containerBuilder->build();
 $app = new Application();
 
 $app->add($container->get(MigrateCommand::class));
+$app->add($container->get(AlgoliaBuildCommand::class));
 
 $app->run();
-
