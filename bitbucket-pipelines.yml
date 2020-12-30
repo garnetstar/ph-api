@@ -30,7 +30,7 @@ pipelines:
           - composer install -o --prefer-dist --no-dev
           - ls -la vendor
         artifacts:
-          - src/vendor/
+          - src/vendor/**
     - step:
         services:
             - docker
