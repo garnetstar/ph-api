@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use Algolia\AlgoliaSearch\SearchClient;
+use Command\AlgoliaBuildCommand;
 use Command\MigrateCommand;
 use Controllers\ArticleController;
 use Controllers\LoginController;
@@ -12,6 +14,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Tools\Setup;
 use Middleware\Auth;
+use Model\Search\AlgoliaIndexer;
 use Model\UserRepository;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -37,6 +40,7 @@ return function (ContainerBuilder $containerBuilder) {
             ArticleController::class => function (ContainerInterface $container) {
                 return new ArticleController(
                     $container->get(EntityManager::class),
+                    $container->get(SearchClient::class),
                     $container->get(Logger::class)
                 );
             },
@@ -68,8 +72,10 @@ return function (ContainerBuilder $containerBuilder) {
                 return new MigrateCommand($container->get(EntityManager::class), $container->get('database'));
             },
 
-            \Command\AlgoliaBuildCommand::class => function (Container $container) {
-                return new \Command\AlgoliaBuildCommand($container->get(EntityManager::class));
+            AlgoliaBuildCommand::class => function (Container $container) {
+                return new AlgoliaBuildCommand(
+                    $container->get(AlgoliaIndexer::class)
+                );
             },
 
             EntityManager::class => function (Container $container) {
@@ -107,6 +113,23 @@ return function (ContainerBuilder $containerBuilder) {
 
                 return $logger;
             },
+
+            SearchClient::class => static function(ContainerInterface $container) {
+                $settings = $container->get('settings');
+                $client = SearchClient::create(
+                    $settings['algolia']['appId'],
+                    $settings['algolia']['apiKey']
+                );
+
+                return $client;
+            },
+
+            AlgoliaIndexer::class => function(ContainerInterface $container) {
+                return new AlgoliaIndexer(
+                    $container->get(SearchClient::class),
+                    $container->get(EntityManager::class)
+                );
+            }
         ]
     );
 };

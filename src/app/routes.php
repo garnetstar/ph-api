@@ -14,6 +14,7 @@ return function (App $app) {
     $app->group('', function (RouteCollectorProxyInterface $app) {
         $app->get('/article[/{id}]', ArticleController::class . ':get');
         $app->get('/article/filter/{field}/{word}', ArticleController::class . ':filter');
+        $app->get('/article/search/{query}', ArticleController::class . ':search');
         $app->put('/article', ArticleController::class . ':put');
         $app->post('/article/{id}', ArticleController::class . ':post');
         $app->delete('/article/{id}', ArticleController::class . ':delete');
