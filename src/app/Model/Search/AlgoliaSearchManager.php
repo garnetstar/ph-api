@@ -10,30 +10,30 @@ use Model\Article\Article;
 class AlgoliaSearchManager
 {
 
-	private const ARTICLE_INDEX = 'articles';
+    private const ARTICLE_INDEX = 'articles';
 
-	/**
-	 * @var SearchClient
-	 */
-	private $searchClient;
+    /**
+     * @var SearchClient
+     */
+    private $searchClient;
 
-	public function __construct(SearchClient $searchClient)
-	{
-		 $this->searchClient = $searchClient;
-	}
+    public function __construct(SearchClient $searchClient)
+    {
+        $this->searchClient = $searchClient;
+    }
 
-	public function saveArticle(Article $article): void
-	{
-		$this->getIndex()->saveObject(ArticleMapper::mapArticle($article));
-	}
+    public function saveArticle(Article $article): void
+    {
+        $this->getIndex()->saveObject(ArticleMapper::mapArticle($article));
+    }
 
-	public function deleteArticle(int $articleId): void
+    public function deleteArticle(int $articleId): void
     {
         $this->getIndex()->deleteObject((string) $articleId);
     }
 
-	private function getIndex(): SearchIndex
-	{
-		return $this->searchClient->initIndex(self::ARTICLE_INDEX);
-	}
+    private function getIndex(): SearchIndex
+    {
+        return $this->searchClient->initIndex(self::ARTICLE_INDEX);
+    }
 }

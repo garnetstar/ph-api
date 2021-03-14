@@ -15,9 +15,9 @@ class ArticleMapper
     public static function mapArticle(Article $article): array
     {
         return [
-			self::FIELD_ID => $article->getId(),
-	        self::FIELD_TITLE => $article->getTitle(),
-	        self::FIELD_CONTENT => $article->getContent(),
+            self::FIELD_ID => $article->getId(),
+            self::FIELD_TITLE => $article->getTitle(),
+            self::FIELD_CONTENT => $article->getContent(),
         ];
     }
 }
