@@ -37,6 +37,10 @@ return function (ContainerBuilder $containerBuilder) {
                     'charset' => 'utf8',
                 ],
             ],
+            'algolia' => [
+                'appId' => getenv('ALGOLIA_API_ID'),
+                'apiKey' => getenv('ALGOLIA_API_KEY'),
+            ],
         ],
     ]);
 };
