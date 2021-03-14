@@ -27,6 +27,11 @@ class AlgoliaSearchManager
 		$this->getIndex()->saveObject(ArticleMapper::mapArticle($article));
 	}
 
+	public function deleteArticle(int $articleId): void
+    {
+        $this->getIndex()->deleteObject((string) $articleId);
+    }
+
 	private function getIndex(): SearchIndex
 	{
 		return $this->searchClient->initIndex(self::ARTICLE_INDEX);

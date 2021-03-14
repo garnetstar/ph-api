@@ -162,6 +162,12 @@ class ArticleController extends BaseController
 			$body = ['state' => 'ok'];
 			$response->getBody()->write(json_encode($body));
 
+			try {
+				$this->searchManager->deleteArticle((int) $args['id']);
+			} catch (BadRequestException $exception) {
+				$this->logger->error($exception->getMessage(), ['error' => $exception]);
+			}
+
 			return $this->returnJson($response);
 		} catch (ArticleNotFoundException $e) {
 			$response->getBody()->write('Not found.');
