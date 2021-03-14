@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Controllers;
 
+use Algolia\AlgoliaSearch\Exceptions\BadRequestException;
+use Algolia\AlgoliaSearch\SearchClient;
 use API\Article\ArticleResponse;
 use API\Article\ArticleResponseCollection;
 use DateTime;
@@ -12,6 +14,7 @@ use Model\Article\Article;
 use Model\Article\ArticleRepository;
 use Model\Article\ArticleRequestBodyValidator;
 use Model\Exception\ArticleNotFoundException;
+use Model\Search\AlgoliaSearchManager;
 use Psr\Log\LoggerInterface;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
@@ -19,157 +22,183 @@ use Slim\Psr7\Response;
 class ArticleController extends BaseController
 {
 
-    /**
-     * @var EntityManager
-     */
-    private $entityManager;
+	/**
+	 * @var EntityManager
+	 */
+	private $entityManager;
 
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
+	/**
+	 * @var ArticleRepository
+	 */
+	private $articleRepository;
 
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
+	/**
+	 * @var AlgoliaSearchManager
+	 */
+	private $searchManager;
 
-    public function __construct(EntityManager $entityManager, LoggerInterface $logger)
-    {
-        $this->entityManager = $entityManager;
-        $this->articleRepository = $this->entityManager->getRepository(Article::class);
-        $this->logger = $logger;
-    }
+	/**
+	 * @var LoggerInterface
+	 */
+	private $logger;
 
-    public function get(Request $request, Response $response, $args): Response
-    {
-        try {
-            if (isset($args['id'])) {
-                try {
-                    $article = $this->articleRepository->getByIdNotDeleted((int) $args['id']);
-                } catch (ArticleNotFoundException $e) {
-                    $response->getBody()->write('Not found');
+	public function __construct(
+		EntityManager $entityManager,
+		AlgoliaSearchManager $algoliaSearchManager,
+		LoggerInterface $logger
+	) {
+		$this->entityManager = $entityManager;
+		$this->articleRepository = $this->entityManager->getRepository(Article::class);
+		$this->searchManager = $algoliaSearchManager;
+		$this->logger = $logger;
+	}
 
-                    return $response->withStatus(404);
-                }
+	public function get(Request $request, Response $response, $args): Response
+	{
+		try {
+			if (isset($args['id'])) {
+				try {
+					$article = $this->articleRepository->getByIdNotDeleted((int) $args['id']);
+				} catch (ArticleNotFoundException $e) {
+					$response->getBody()->write('Not found');
 
-                $response->getBody()->write(
-                    (new ArticleResponse($article))->toJson()
-                );
+					return $response->withStatus(404);
+				}
 
-                return $response->withHeader('Content-Type', 'application/json');
-            }
+				$response->getBody()->write(
+					(new ArticleResponse($article))->toJson()
+				);
 
-            $allArticles = $this->articleRepository->findAllOrderedByLastUpdate();
+				return $response->withHeader('Content-Type', 'application/json');
+			}
 
-            $articleResponse = new ArticleResponseCollection($allArticles);
-            $response->getBody()->write($articleResponse->toJson());
+			$allArticles = $this->articleRepository->findAllOrderedByLastUpdate();
 
-            return $this->returnJson($response);
-        } catch (\Exception $e) {
-            $response->getBody()->write('Internal Server Error');
-            $this->logger->error($e->getMessage(), ['error' => $e]);
+			$articleResponse = new ArticleResponseCollection($allArticles);
+			$response->getBody()->write($articleResponse->toJson());
 
-            return $response->withStatus(500);
-        }
-    }
+			return $this->returnJson($response);
+		} catch (\Exception $e) {
+			$response->getBody()->write('Internal Server Error');
+			$this->logger->error($e->getMessage(), ['error' => $e]);
 
-    public function put(Request $request, Response $response, $args): Response
-    {
-        try {
-            $data = json_decode($request->getBody()->getContents(), true);
+			return $response->withStatus(500);
+		}
+	}
 
-            if (ArticleRequestBodyValidator::isValid($data)) {
-                $article = new Article($data['title'], $data['content']);
-                $this->entityManager->persist($article);
-                $this->entityManager->flush();
-            } else {
-                $response->getBody()->write('Invalid request body');
+	public function put(Request $request, Response $response, $args): Response
+	{
+		try {
+			$data = json_decode($request->getBody()->getContents(), true);
 
-                return $response->withStatus(422);
-            }
+			if (ArticleRequestBodyValidator::isValid($data)) {
+				$article = new Article($data['title'], $data['content']);
+				$this->entityManager->persist($article);
+				$this->entityManager->flush();
+			} else {
+				$response->getBody()->write('Invalid request body');
 
-            $body = ['state' => 'ok', 'article_id' => $article->getId()];
-            $response->getBody()->write(json_encode($body));
+				return $response->withStatus(422);
+			}
 
-            return $this->returnJson($response);
-        } catch (Exception $e) {
-            $response->getBody()->write('Internal Server Error');
-            $this->logger->error($e->getMessage(), ['error' => $e]);
+			$body = ['state' => 'ok', 'article_id' => $article->getId()];
+			$response->getBody()->write(json_encode($body));
 
-            return $response->withStatus(500);
-        }
-    }
+			return $this->returnJson($response);
+		} catch (\Throwable $e) {
+			$response->getBody()->write('Internal Server Error');
+			$this->logger->error($e->getMessage(), ['error' => $e]);
 
-    public function post(Request $request, Response $response, $args): Response
-    {
-        try {
-            $data = json_decode($request->getBody()->getContents(), true);
+			return $response->withStatus(500);
+		}
+	}
 
-            try {
-                $article = $this->articleRepository->getByIdNotDeleted((int) $args['id']);
-            } catch (ArticleNotFoundException $e) {
-                $response->getBody()->write('Not found.');
+	public function post(Request $request, Response $response, $args): Response
+	{
+		try {
+			$data = json_decode($request->getBody()->getContents(), true);
 
-                return $response->withStatus(404);
-            }
+			try {
+				$article = $this->articleRepository->getByIdNotDeleted((int) $args['id']);
+			} catch (ArticleNotFoundException $e) {
+				$response->getBody()->write('Not found.');
 
-            if (ArticleRequestBodyValidator::isValid($data)) {
-                $article->setTitle($data['title']);
-                $article->setContent($data['content']);
-                $article->setUpdated(new DateTime());
-                $this->entityManager->flush();
+				return $response->withStatus(404);
+			}
 
-                $body = ['state' => 'ok'];
-                $response->getBody()->write(json_encode($body));
+			if (ArticleRequestBodyValidator::isValid($data)) {
+				$article->setTitle($data['title']);
+				$article->setContent($data['content']);
+				$article->setUpdated(new DateTime());
+				$this->entityManager->flush();
 
-                return $this->returnJson($response);
-            }
+				try {
+					$this->searchManager->saveArticle($article);
+				} catch (BadRequestException $exception) {
+					$this->logger->error($exception->getMessage(), ['error' => $exception]);
+				}
 
-            $response->getBody()->write('Invalid request body');
+				$body = ['state' => 'ok'];
+				$response->getBody()->write(json_encode($body));
 
-            return $response->withStatus(422);
-        } catch (Exception $e) {
-            $response->getBody()->write('Internal Server Error.');
-            $this->logger->error($e->getMessage(), ['error' => $e]);
+				return $this->returnJson($response);
+			}
 
-            return $response->withStatus(500);
-        }
-    }
+			$response->getBody()->write('Invalid request body');
 
-    public function delete(Request $request, Response $response, $args): Response
-    {
-        try {
-            $this->articleRepository->softDelete((int) $args['id']);
-            $body = ['state' => 'ok'];
-            $response->getBody()->write(json_encode($body));
+			return $response->withStatus(422);
+		} catch (Exception $e) {
+			$response->getBody()->write('Internal Server Error.');
+			$this->logger->error($e->getMessage(), ['error' => $e]);
 
-            return $this->returnJson($response);
-        } catch (ArticleNotFoundException $e) {
-            $response->getBody()->write('Not found.');
+			return $response->withStatus(500);
+		}
+	}
 
-            return $response->withStatus(404);
-        } catch (Exception $e) {
-            $response->getBody()->write('Internal Server Error.');
+	public function delete(Request $request, Response $response, $args): Response
+	{
+		try {
+			$this->articleRepository->softDelete((int) $args['id']);
+			$body = ['state' => 'ok'];
+			$response->getBody()->write(json_encode($body));
 
-            return $response->withStatus(500);
-        }
-    }
+			return $this->returnJson($response);
+		} catch (ArticleNotFoundException $e) {
+			$response->getBody()->write('Not found.');
 
-    public function filter(Request $request, Response $response, $args): Response
-    {
+			return $response->withStatus(404);
+		} catch (Exception $e) {
+			$response->getBody()->write('Internal Server Error.');
 
-        if ($args['field'] === 'title') {
-            $articles = $this->articleRepository->findByTitleLike($args['word']);
-            $articleResponseCollection = new ArticleResponseCollection($articles);
+			return $response->withStatus(500);
+		}
+	}
 
-            $response->getBody()->write($articleResponseCollection->toJson());
+	public function filter(Request $request, Response $response, $args): Response
+	{
 
-            return $this->returnJson($response);
-        }
+		if ($args['field'] === 'title') {
+			$articles = $this->articleRepository->findByTitleLike($args['word']);
+			$articleResponseCollection = new ArticleResponseCollection($articles);
 
-        $response->getBody()->write('Invalid Argument Exception.');
+			$response->getBody()->write($articleResponseCollection->toJson());
 
-        return $response->withStatus(422);
-    }
+			return $this->returnJson($response);
+		}
+
+		$response->getBody()->write('Invalid Argument Exception.');
+
+		return $response->withStatus(422);
+	}
+
+	public function search(Request $request, Response $response, $args): Response
+	{
+		$index = $this->searchClient->initIndex('articles');
+
+		$res = $index->search($args['query']);
+
+		$response->getBody()->write(\GuzzleHttp\json_encode($res));
+
+		return $this->returnJson($response);
+	}
 }
