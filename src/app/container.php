@@ -24,117 +24,117 @@ use Psr\Container\ContainerInterface;
 
 return function (ContainerBuilder $containerBuilder) {
 
-	$containerBuilder->addDefinitions(
-		[
-			'isProduction' => true,
-			'database' => static function (ContainerInterface $container) {
-				$settings = $container->get('settings');
-				$database = new Connection(
-					$settings['database']['dns'],
-					$settings['database']['user'],
-					$settings['database']['password']
-				);
+    $containerBuilder->addDefinitions(
+        [
+            'isProduction' => true,
+            'database' => static function (ContainerInterface $container) {
+                $settings = $container->get('settings');
+                $database = new Connection(
+                    $settings['database']['dns'],
+                    $settings['database']['user'],
+                    $settings['database']['password']
+                );
 
-				return $database;
-			},
+                return $database;
+            },
 
-			ArticleController::class => function (ContainerInterface $container) {
-				return new ArticleController(
-					$container->get(EntityManager::class),
-					$container->get(AlgoliaSearchManager::class),
-					$container->get(Logger::class)
-				);
-			},
+            ArticleController::class => function (ContainerInterface $container) {
+                return new ArticleController(
+                    $container->get(EntityManager::class),
+                    $container->get(AlgoliaSearchManager::class),
+                    $container->get(Logger::class)
+                );
+            },
 
-			LoginController::class => function (ContainerInterface $container) {
-				$settings = $container->get('settings');
+            LoginController::class => function (ContainerInterface $container) {
+                $settings = $container->get('settings');
 
-				return new LoginController(
-					$settings['googleClientId'],
-					$container->get(EntityManager::class)
-				);
-			},
+                return new LoginController(
+                    $settings['googleClientId'],
+                    $container->get(EntityManager::class)
+                );
+            },
 
-			UserRepository::class => function (
-				ContainerInterface $container
-			) {
-				return new UserRepository(
-					$container->get('database')
-				);
-			},
+            UserRepository::class => function (
+                ContainerInterface $container
+            ) {
+                return new UserRepository(
+                    $container->get('database')
+                );
+            },
 
-			Auth::class => function (Container $container) {
-				$userRepository = $container->get(UserRepository::class);
+            Auth::class => function (Container $container) {
+                $userRepository = $container->get(UserRepository::class);
 
-				return new Auth($userRepository);
-			},
+                return new Auth($userRepository);
+            },
 
-			MigrateCommand::class => function (Container $container) {
-				return new MigrateCommand($container->get(EntityManager::class), $container->get('database'));
-			},
+            MigrateCommand::class => function (Container $container) {
+                return new MigrateCommand($container->get(EntityManager::class), $container->get('database'));
+            },
 
-			AlgoliaBuildCommand::class => function (Container $container) {
-				return new AlgoliaBuildCommand(
-					$container->get(AlgoliaIndexer::class)
-				);
-			},
+            AlgoliaBuildCommand::class => function (Container $container) {
+                return new AlgoliaBuildCommand(
+                    $container->get(AlgoliaIndexer::class)
+                );
+            },
 
-			EntityManager::class => function (Container $container) {
-				$settings = $container->get('settings');
+            EntityManager::class => function (Container $container) {
+                $settings = $container->get('settings');
 
-				$config = Setup::createAnnotationMetadataConfiguration(
-					$settings['doctrine']['metadata_dirs'],
-					$settings['doctrine']['dev_mode'],
-					$settings['doctrine']['cache_dir']
-				);
+                $config = Setup::createAnnotationMetadataConfiguration(
+                    $settings['doctrine']['metadata_dirs'],
+                    $settings['doctrine']['dev_mode'],
+                    $settings['doctrine']['cache_dir']
+                );
 
-				$config->setMetadataDriverImpl(
-					new AnnotationDriver(
-						new AnnotationReader(),
-						$settings['doctrine']['metadata_dirs']
-					)
-				);
+                $config->setMetadataDriverImpl(
+                    new AnnotationDriver(
+                        new AnnotationReader(),
+                        $settings['doctrine']['metadata_dirs']
+                    )
+                );
 
-				$config->setMetadataCacheImpl(
-					new FilesystemCache(
-						$settings['doctrine']['cache_dir']
-					)
-				);
+                $config->setMetadataCacheImpl(
+                    new FilesystemCache(
+                        $settings['doctrine']['cache_dir']
+                    )
+                );
 
-				return EntityManager::create(
-					$settings['doctrine']['connection'],
-					$config
-				);
-			},
+                return EntityManager::create(
+                    $settings['doctrine']['connection'],
+                    $config
+                );
+            },
 
-			Logger::class => function (ContainerInterface $container) {
-				$streamHandler = new StreamHandler(APP_ROOT . '/../log/app.log', Logger::DEBUG);
-				$logger = new Logger('pg-api');
-				$logger->pushHandler($streamHandler);
+            Logger::class => function (ContainerInterface $container) {
+                $streamHandler = new StreamHandler(APP_ROOT . '/../log/app.log', Logger::DEBUG);
+                $logger = new Logger('pg-api');
+                $logger->pushHandler($streamHandler);
 
-				return $logger;
-			},
+                return $logger;
+            },
 
-			SearchClient::class => static function (ContainerInterface $container) {
-				$settings = $container->get('settings');
-				$client = SearchClient::create(
-					$settings['algolia']['appId'],
-					$settings['algolia']['apiKey']
-				);
+            SearchClient::class => static function (ContainerInterface $container) {
+                $settings = $container->get('settings');
+                $client = SearchClient::create(
+                    $settings['algolia']['appId'],
+                    $settings['algolia']['apiKey']
+                );
 
-				return $client;
-			},
+                return $client;
+            },
 
-			AlgoliaIndexer::class => function (ContainerInterface $container) {
-				return new AlgoliaIndexer(
-					$container->get(SearchClient::class),
-					$container->get(EntityManager::class)
-				);
-			},
+            AlgoliaIndexer::class => function (ContainerInterface $container) {
+                return new AlgoliaIndexer(
+                    $container->get(SearchClient::class),
+                    $container->get(EntityManager::class)
+                );
+            },
 
-			AlgoliaSearchManager::class => function (ContainerInterface $container) {
-				return new AlgoliaSearchManager($container->get(SearchClient::class));
-			},
-		]
-	);
+            AlgoliaSearchManager::class => function (ContainerInterface $container) {
+                return new AlgoliaSearchManager($container->get(SearchClient::class));
+            },
+        ]
+    );
 };
