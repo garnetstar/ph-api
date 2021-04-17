@@ -1,8 +1,32 @@
-FROM garnetstar/pg-api-template:php7.2
+FROM php:7.2.26-apache as base
+
+RUN \
+a2enmod rewrite && \
+apt-get update && \
+apt-get install -y vim && \
+docker-php-ext-install pdo_mysql && \
+rm -rf \
+    /tmp/* \
+    /var/lib/apt/lists/* \
+    /var/tmp/*
 
 RUN mkdir /api
-
 WORKDIR /api
+
+FROM base as composer
+
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+  php composer-setup.php --install-dir=/usr/bin --filename=composer && \
+  rm composer-setup.php && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends \
+  git && \
+rm -rf \
+    /tmp/* \
+    /var/lib/apt/lists/* \
+    /var/tmp/*
+
+FROM base as prod
 
 # copy and prepare source code
 COPY src .
@@ -17,3 +41,5 @@ RUN chmod 777 ./log
 COPY Docker/default.conf /etc/apache2/sites-available/pg-api.conf
 RUN rm /etc/apache2/sites-enabled/*
 RUN ln -s /etc/apache2/sites-available/pg-api.conf /etc/apache2/sites-enabled/pg-api.conf
+
+
