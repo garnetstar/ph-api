@@ -10,8 +10,8 @@ return function (ContainerBuilder $containerBuilder) {
             'displayErrorDetails' => false,
 
             'database' => [
-                'dns' => 'mysql:host=db;dbname=' . getenv('DB_NAME'),
-                'user' => 'root',
+                'dns' => 'mysql:host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_NAME'),
+                'user' => getenv('DB_USER'),
                 'password' => getenv('DB_PASSWORD'),
             ],
             'googleClientId' => getenv('GOOGLE_CLIENT_ID'),
@@ -29,10 +29,10 @@ return function (ContainerBuilder $containerBuilder) {
 
                 'connection' => [
                     'driver' => 'pdo_mysql',
-                    'host' => 'db',
+                    'host' => getenv('DB_HOST'),
                     'port' => 3306,
-                    'dbname' => 'pg',
-                    'user' => 'root',
+                    'dbname' => getenv('DB_NAME'),
+                    'user' => getenv('DB_USER'),
                     'password' => getenv('DB_PASSWORD'),
                     'charset' => 'utf8',
                 ],

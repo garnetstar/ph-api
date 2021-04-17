@@ -1,14 +1,11 @@
-# Kontejnery 
-## pg-api
-pro produkční aplikaci, obsahuje zdrojový kód, je v něm server, chybí dev věci a composer.
-## pg-api-template
-pro vytvoření prodkukčního kontejneru
-## pg-api-build
-pro vytvoření produkčního kontejneru. Běží v něm testy, stahují se knihovny composerem. Není v něm server.
-## pg-api-dev
-slouží pro vývoj. Obsahuje vše potřebné pro vývoj: composer, dev věci, server ...
+Mandatory env:  
 
-#LoginPresenter
+DB_PASSWORD  
+DB_USER  
+DB_HOST  
+DB_NAME  
+
+#LoginPresenter  
 
 ##methods
  
