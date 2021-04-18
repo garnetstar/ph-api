@@ -17,6 +17,15 @@ docker run  --network pnet -p 3306:3306 --rm -v $(pwd)/db/:/db/ -d --name db -e 
 docker exec -it db bash -c "mysql -u root -pxxx < /db/init.sql"  
 
 #run prod image
-docker run --network pnet -e DB_PASSWORD=xxx -e DB_USER=root -e DB_HOST=db -e DB_NAME=pn -d --rm --name pn-api -p 88:80 pn-api:v1 
+docker run --network pnet \
+-e DB_PASSWORD=xxx \
+-e DB_USER=root \
+-e DB_HOST=db \
+-e DB_NAME=pn \
+-e GOOGLE_CLIENT_ID=192740429578-s8t31esln4b8ab64os5afg11imb93l35.apps.googleusercontent.com \
+-d --rm --name pn-api -p 88:80 \
+pn-api:v1 
+
+
 
 
