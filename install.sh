@@ -9,6 +9,9 @@ docker run -it -v $(pwd)/src/:/api/src/ pn-api:composer bash -c 'cd src && compo
 # build prod image
 docker build --target prod -t pn-api:v1 -f Docker/Dockerfile .  
 
+# build dev image
+docker build --target dev -t pn-api:dev -f Docker/Dockerfile . 
+
 # network 
 docker network create pnet  
 
@@ -26,6 +29,14 @@ docker run --network pnet \
 -d --rm --name pn-api -p 88:80 \
 pn-api:v1 
 
-
-
+#run dev image
+docker run \
+--network pnet \
+-e DB_PASSWORD=xxx \
+-e DB_USER=root \
+-e DB_HOST=db \
+-e DB_NAME=pn \
+-v $(pwd)/src:/api \
+--rm -d --name pn-api -p 88:80 \
+pn-api:dev
 
