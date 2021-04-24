@@ -36,6 +36,7 @@ docker run \
 -e DB_USER=root \
 -e DB_HOST=db \
 -e DB_NAME=pn \
+-e GOOGLE_CLIENT_ID=192740429578-s8t31esln4b8ab64os5afg11imb93l35.apps.googleusercontent.com \
 -v $(pwd)/src:/api \
 --rm -d --name pn-api -p 88:80 \
 pn-api:dev
