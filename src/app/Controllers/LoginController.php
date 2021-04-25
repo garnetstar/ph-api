@@ -15,18 +15,14 @@ class LoginController extends BaseController
 {
 
     /**
-     * @var string
-     */
-    private $clientId;
-
-    /**
      * @var UserRepository
      */
     private $userRepository;
 
-    public function __construct(string $googleClientId, EntityManager $entityManager)
-    {
-        $this->clientId = $googleClientId;
+    public function __construct(
+        private string $clientId, 
+        private EntityManager $entityManager,
+    ) {
         $this->userRepository = $entityManager->getRepository(User::class);
     }
 

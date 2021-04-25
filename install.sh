@@ -32,6 +32,7 @@ pn-api:v1
 #run dev image
 docker run \
 --network pnet \
+-e DEBUG=true \
 -e DB_PASSWORD=xxx \
 -e DB_USER=root \
 -e DB_HOST=db \
@@ -40,4 +41,3 @@ docker run \
 -v $(pwd)/src:/api \
 --rm -d --name pn-api -p 88:80 \
 pn-api:dev
-

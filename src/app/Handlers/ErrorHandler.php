@@ -13,7 +13,7 @@ class ErrorHandler extends \Slim\Handlers\ErrorHandler
     /**
      * @var LoggerInterface
      */
-    private $logger;
+    protected $logger;
 
     public function __construct(
         CallableResolverInterface $callableResolver,
@@ -30,3 +30,4 @@ class ErrorHandler extends \Slim\Handlers\ErrorHandler
         $this->logger->error($error);
     }
 }
+

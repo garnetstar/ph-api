@@ -1,4 +1,4 @@
-FROM php:7.2.26-apache as base
+FROM php:8.0.3-apache-buster as base
 
 RUN a2enmod rewrite
 

@@ -23,34 +23,16 @@ class ArticleController extends BaseController
 {
 
     /**
-     * @var EntityManager
-     */
-    private $entityManager;
-
-    /**
      * @var ArticleRepository
      */
     private $articleRepository;
 
-    /**
-     * @var AlgoliaSearchManager
-     */
-    private $searchManager;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
     public function __construct(
-        EntityManager $entityManager,
-        AlgoliaSearchManager $algoliaSearchManager,
-        LoggerInterface $logger
+        private EntityManager $entityManager,
+        private AlgoliaSearchManager $algoliaSearchManager,
+        private LoggerInterface $logger,
     ) {
-        $this->entityManager = $entityManager;
         $this->articleRepository = $this->entityManager->getRepository(Article::class);
-        $this->searchManager = $algoliaSearchManager;
-        $this->logger = $logger;
     }
 
     public function get(Request $request, Response $response, $args): Response
