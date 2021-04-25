@@ -17,7 +17,6 @@ docker network create pnet
 
 # database
 docker run  --network pnet -p 3306:3306 --rm -v $(pwd)/db/:/db/ -d --name db -e MYSQL_ROOT_PASSWORD=xxx -e MYSQL_DATABASE=pn mariadb:10.2.26 
-docker exec -it db bash -c "mysql -u root -pxxx < /db/init.sql"  
 
 #run prod image
 docker run --network pnet \
@@ -41,3 +40,6 @@ docker run \
 -v $(pwd)/src:/api \
 --rm -d --name pn-api -p 88:80 \
 pn-api:dev
+
+# create tables
+docker exec -it pn-api bash -c "php vendor/bin/doctrine orm:schema-tool:create"
