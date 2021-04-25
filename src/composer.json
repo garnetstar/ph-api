@@ -1,5 +1,6 @@
 {
   "require": {
+    "php": "8.0.3",
     "slim/slim": "^4.0",
     "php-di/php-di": "^6.0",
     "nette/database": "v2.4.4",
