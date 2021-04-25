@@ -9,11 +9,6 @@ return function (ContainerBuilder $containerBuilder) {
         'settings' => [
             'displayErrorDetails' => getenv('DEBUG') === 'true',
 
-            'database' => [
-                'dns' => 'mysql:host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_NAME'),
-                'user' => getenv('DB_USER'),
-                'password' => getenv('DB_PASSWORD'),
-            ],
             'googleClientId' => getenv('GOOGLE_CLIENT_ID'),
 
             'doctrine' => [

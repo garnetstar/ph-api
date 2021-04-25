@@ -3,7 +3,6 @@
     "php": "8.0.3",
     "slim/slim": "^4.0",
     "php-di/php-di": "^6.0",
-    "nette/database": "v2.4.4",
     "google/apiclient": "v2.4.0",
     "doctrine/orm": "^2",
     "symfony/console": "^4.3",
